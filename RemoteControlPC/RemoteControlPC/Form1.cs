@@ -31,7 +31,7 @@ namespace RemoteControlPC
         {
             QueryIP();
             QueryPort();
-            this.button2.Enabled = false;
+            bstop.Enabled = false;
         }
 
         private void QueryIP()
@@ -55,10 +55,9 @@ namespace RemoteControlPC
             Connect();
             if (connected)
             {
-                this.pbimage.Image = this.pbimage.InitialImage;
-                this.lstatus.Text = GlobalConstants.SERVERSTATUSINLISTEN;
-                this.bstart.Enabled = false;
-                this.bstop.Enabled = true;
+                lstatus.Text = GlobalConstants.SERVERSTATUSINLISTEN;
+                bstart.Enabled = false;
+                bstop.Enabled = true;
             }
         }
 
@@ -97,6 +96,47 @@ namespace RemoteControlPC
             {
                 System.Windows.Forms.MessageBox.Show(ex.Message.ToString());
             }
+        }
+
+        delegate void ShowMessageHandler(string message);
+        public void showmessage(String message)
+        {
+            if (InvokeRequired)
+            {
+                ShowMessageHandler show = new ShowMessageHandler(processmessage);
+                BeginInvoke(show, message);
+            }
+            else
+            {
+                lstatus.Text = message;
+            }
+        }
+
+        public void processmessage(String message)
+        {
+            lstatus.Text = message;
+        }
+
+        private void bstop_Click(object sender, EventArgs e)
+        {
+            if (pcthread != null)
+            {
+                threadExe.Abort();
+                threadExe = null;
+                pcthread.Abort();
+                pcthread = null;
+            }
+            if (scthread != null)
+            {
+                threadSender.Abort();
+                threadSender = null;
+                scthread.Abort();
+                scthread = null;
+            }
+            bstart.Enabled = true;
+            bstop.Enabled = false;
+            lstatus.Text = "";
+           // System.Drawing.Image image = new System.Drawing.Bitmap(Properties.Resources.pause);
         }
     }
 }

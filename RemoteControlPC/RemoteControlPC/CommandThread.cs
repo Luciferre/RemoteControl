@@ -15,11 +15,11 @@ namespace RemoteControlPC
         private Socket socket = null;
         Thread RCThread = null;
         RemoteControlPC.SenderReceive handleScript = null;
-        Form1 mainform = null;
+        Form1 mainformc = null;
        
          public CommandThread(String ip, int port, Object form)
         {
-            mainform = form as Form1;
+            mainformc = form as Form1;
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPAddress ipaddress = IPAddress.Parse(ip);
             IPEndPoint ipendpoint = new IPEndPoint(ipaddress, port);
@@ -32,11 +32,37 @@ namespace RemoteControlPC
              while (socket != null && socket.IsBound)
              {
                  Socket executorSocket = socket.Accept();
-                 this.mainform.showmessage(executorSocket.RemoteEndPoint.ToString());
-                 this.mainform.changeIco(new System.Drawing.Bitmap(Properties.Resources.bot));
-                 RCThread = new Thread(new ThreadStart((handleScript = new RemoteControlPC.ReceiveSender(executorSocket, this.mainformc)).receiveMessage));
+                 mainformc.showmessage(executorSocket.RemoteEndPoint.ToString());
+                 RCThread = new Thread(new ThreadStart((handleScript = new RemoteControlPC.SenderReceive(executorSocket, mainformc)).receiveMessage));
                  RCThread.Start();
              }
          }
+         #region Function for destorying class and release all the resource
+         public void Abort()
+         {
+             if (socket != null)
+             {
+                 if (socket.Connected)
+                 {
+                     socket.Disconnect(true);
+                     socket = null;
+                 }
+                 else
+                 {
+                     socket.Dispose();
+                     socket = null;
+                 }
+             }
+             if (RCThread != null)
+             {
+                 RCThread.Abort();
+                 if (handleScript != null)
+                 {
+                     handleScript.Abort();
+                 }
+                 handleScript = null;
+             }
+         }
+         #endregion
     }
 }
